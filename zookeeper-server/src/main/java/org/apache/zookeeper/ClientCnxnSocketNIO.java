@@ -126,8 +126,9 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                 }
                 //把数据通过byteBuffer写出去
                 sock.write(p.bb);
-                //处理拆包，可能Socket缓冲区慢了，此时一次性发不出去
-                //没有发完，则不删除outgoing头的元素
+                //处理拆包，
+                // 可能Socket缓冲区慢了，此时一次性发不出去没有发完，则不删除outgoing头的元素
+                //同时继续监听这个Socket的可写事件，下次进入Select，这个Socket的buffer被OS发出去了，则再次唤醒，拿到这个
                 if (!p.bb.hasRemaining()) {
                     sentCount.getAndIncrement();
                     //从队列头部删掉
@@ -378,6 +379,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                 doIO(pendingQueue, cnxn);
             }
         }
+        //此时发现outgoingQueue又有了，则再次注册write
         if (sendThread.getZkState().isConnected()) {
             if (findSendablePacket(outgoingQueue,
                     sendThread.tunnelAuthInProgress()) != null) {

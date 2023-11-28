@@ -63,20 +63,39 @@ public class LeaderZooKeeperServer extends QuorumZooKeeperServer {
 
     @Override
     protected void setupRequestProcessors() {
+        //第六个处理器
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
+
+        //第五个处理器
         RequestProcessor toBeAppliedProcessor = new Leader.ToBeAppliedRequestProcessor(finalProcessor, getLeader());
+
+        //第四个处理器 把commit应用到自己的内存数据库
+        // 然后把commit请求发送给所有的follower
+        // 问题:此时leader挂了怎么办？
+        //      首先这里是同步的，不会出现写了两条log在等待的情况
+        //      所以在只有一条日志等待follower的情况下，只要走到commit，说明这个日志被蟹道乐大多数
+        //      此时如果followe挂了，拿到最高log的follower应该负责同步给其他节点？但是此时client拿到了异常，却写成功了，看起来有问题
         commitProcessor = new CommitProcessor(toBeAppliedProcessor,
                 Long.toString(getServerId()), false,
                 getZooKeeperServerListener());
         commitProcessor.start();
-        //2PAC 的第一个PAC
+
+        //第三个处理器 2PAC 的第一个PAC 发起提案
+        //从outstandingQueue中拿出请求
+        // 写入本地的事务日志
+        // follower 写入本地事务日志
+        // 等待过半的follower回复ack
         ProposalRequestProcessor proposalProcessor = new ProposalRequestProcessor(this,
                 commitProcessor);
         proposalProcessor.initialize();
-        //负责请求的转换与封装
+
+        //第二个处理器 负责请求的转换与封装
+        // 转为顺序处理
+        //放入outstandingQueue
         prepRequestProcessor = new PrepRequestProcessor(this, proposalProcessor);
         prepRequestProcessor.start();
-        // firstProcessor在这里赋值的 这里是责任链的第一个处理器 负责session校验
+
+        // 第一个处理器  firstProcessor在这里赋值的 这里是责任链的第一个处理器 负责session校验
         firstProcessor = new LeaderRequestProcessor(this, prepRequestProcessor);
 
         setupContainerManager();

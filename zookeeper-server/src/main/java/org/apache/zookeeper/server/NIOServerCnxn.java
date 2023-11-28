@@ -350,7 +350,7 @@ public class NIOServerCnxn extends ServerCnxn {
                         isPayload = true;
                     }
                     if (isPayload) { // not the case for 4letterword
-                        //真正读取数据
+                        //处理数据
                         readPayload();
                     }
                     else {

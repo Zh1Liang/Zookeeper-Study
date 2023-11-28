@@ -1573,7 +1573,8 @@ public class ClientCnxn {
                 null, watchRegistration, watchDeregistration);
 
         //异步转同步
-        //通过packet上的锁去唤醒
+        //请求线程通过packet上的锁去控制同步转异步
+        //就是个 syncnized锁
         synchronized (packet) {
             //有请求超时时间
             if (requestTimeout > 0) {

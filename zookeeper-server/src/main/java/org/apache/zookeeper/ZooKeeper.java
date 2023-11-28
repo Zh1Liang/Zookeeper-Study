@@ -1557,6 +1557,9 @@ public class ZooKeeper implements AutoCloseable {
             throw new KeeperException.InvalidACLException();
         }
         request.setAcl(acl);
+
+        //发送请求
+        //看起来做了异步转同步
         ReplyHeader r = cnxn.submitRequest(h, request, response, null);
         if (r.getErr() != 0) {
             throw KeeperException.create(KeeperException.Code.get(r.getErr()),

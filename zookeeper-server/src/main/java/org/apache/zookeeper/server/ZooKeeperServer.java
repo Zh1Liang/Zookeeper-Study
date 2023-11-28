@@ -1239,6 +1239,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
                 // local request.
                 setLocalSessionFlag(si);
                 // 处理Request对象，也就是真正的处理网络请求
+                //这里是异步的，这次方法调用就直接return了
                 submitRequest(si);
             }
         }

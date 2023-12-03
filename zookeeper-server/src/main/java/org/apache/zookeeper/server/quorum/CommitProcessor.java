@@ -144,7 +144,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
             case OpCode.setACL:
                 return true;
             case OpCode.sync:
-                return matchSyncs;    
+                return matchSyncs;
             case OpCode.createSession:
             case OpCode.closeSession:
                 return !request.isLocalSession();
@@ -158,14 +158,14 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
         Request request;
         try {
             while (!stopped) {
-                synchronized(this) {
+                synchronized (this) {
                     while (
-                            //服务没有停止
-                            //请求队列为空\等待commit\正在处理commit则阻塞
-                            //commitRequests中存放了需要commit的zxid
-                        !stopped &&
-                        ((queuedRequests.isEmpty() || isWaitingForCommit() || isProcessingCommit()) &&
-                         (committedRequests.isEmpty() || isProcessingRequest()))) {
+                        //服务没有停止
+                        //请求队列为空\等待commit\正在处理commit则阻塞
+                        //commitRequests中存放了需要commit的zxid
+                            !stopped &&
+                                    ((queuedRequests.isEmpty() || isWaitingForCommit() || isProcessingCommit()) &&
+                                            (committedRequests.isEmpty() || isProcessingRequest()))) {
                         //当完成多数ACK后，这里被唤醒
                         wait();
                     }
@@ -184,7 +184,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
                     //判断类型，增删改需要commite
                     if (needCommit(request)) {
                         //待做的命令,问题，这里不会导致覆盖吗？因为上面是个while
-                        //猜测：可能会批量commite?
+                        //猜测：可能会批量commit?
                         nextPending.set(request);
                     } else {
                         //传递给责任链的下一个组件
@@ -218,7 +218,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
             /*
              * ZOOKEEPER-1863: continue only if there is no new request
              * waiting in queuedRequests or it is waiting for a
-             * commit. 
+             * commit.
              */
             if ( !isWaitingForCommit() && !queuedRequests.isEmpty()) {
                 return;
@@ -252,7 +252,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
                 currentlyCommitting.set(request);
                 sendToNextProcessor(request);
             }
-        }      
+        }
     }
 
     @Override

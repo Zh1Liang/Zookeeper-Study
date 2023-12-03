@@ -73,6 +73,11 @@ public class FollowerZooKeeperServer extends LearnerZooKeeperServer {
         commitProcessor.start();
         firstProcessor = new FollowerRequestProcessor(this, commitProcessor);
         ((FollowerRequestProcessor) firstProcessor).start();
+
+
+        //第二个链条
+        //  1.sync 写本地日志
+        //  2.ack发起ack
         syncProcessor = new SyncRequestProcessor(this,
                 new SendAckRequestProcessor((Learner)getFollower()));
         syncProcessor.start();

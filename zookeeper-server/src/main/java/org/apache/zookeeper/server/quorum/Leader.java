@@ -837,8 +837,9 @@ public class Leader {
             inform(p);
         }
         // 4、调用 CommitProcessor 的 commit 方法，目的是唤醒“沉睡”的 CommitProcessor 线程，让其正常工作
-        // (这里写入本地成功，且完成了多数派写，然后就可以写入内存)
+        // (这里写入本地成功，且完成了多数派写，然后就可以写入内存，这个数据可见)
         zk.commitProcessor.commit(p.request);
+
         if(pendingSyncs.containsKey(zxid)){
             for(LearnerSyncRequest r: pendingSyncs.remove(zxid)) {
                 sendSync(r);
@@ -901,7 +902,9 @@ public class Leader {
             return;
         }
 
-        //propasol extands SyncedLearnerTracker  SyncedLearnerTracker里面就保存了有多少sid完成了propersol
+        //propasol extands SyncedLearnerTracker
+        //每个propasol保存了一个ack集合
+        // SyncedLearnerTracker里面就保存了有多少sid完成了propersol
         p.addAck(sid);
         /*if (LOG.isDebugEnabled()) {
             LOG.debug("Count for zxid: 0x{} is {}",

@@ -70,6 +70,7 @@ public class ProposalRequestProcessor implements RequestProcessor {
          */
         // 如果是Follower/Observer则走if分支，Leader直接走else
         //request应该是Pre处理的，可以看一下，因为被转换成了其他类型
+        //强制刷到所有的follower
         if (request instanceof LearnerSyncRequest){
             zks.getLeader().processSync((LearnerSyncRequest)request);
         } else {
@@ -78,6 +79,7 @@ public class ProposalRequestProcessor implements RequestProcessor {
             //一开始的时候 CommitProcessor 线程任务会阻塞住，也就是 wait() 住
             //等第二第三步将提议发给 Follower 且得到过半的反馈ack后会进行 notifyAll() 唤醒正在阻塞的 CommitProcessor 线程
             nextProcessor.processRequest(request);
+
             //2、向Follower发起提议,也就是通知各个 Follower 节点要写入这个数据到事物日志
             if (request.getHdr() != null) {
                 // We need to sync and get consensus on any transactions

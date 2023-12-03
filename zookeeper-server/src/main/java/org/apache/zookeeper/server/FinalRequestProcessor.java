@@ -109,7 +109,7 @@ public class FinalRequestProcessor implements RequestProcessor {
         ProcessTxnResult rc = null;
         synchronized (zks.outstandingChanges) {
             // Need to process local session requests
-            //这里塞到内存
+            //这里塞到内存,就可见了
             rc = zks.processTxn(request);
 
             // request.hdr is set for write requests, which are the only ones
@@ -491,6 +491,7 @@ public class FinalRequestProcessor implements RequestProcessor {
                     request.createTime, Time.currentElapsedTime());
 
         try {
+            //返回给客户端
             cnxn.sendResponse(hdr, rsp, "response");
             if (request.type == OpCode.closeSession) {
                 cnxn.sendCloseSession();

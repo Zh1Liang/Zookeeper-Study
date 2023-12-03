@@ -431,7 +431,7 @@ public class FileTxnSnapLog {
         //获取内存中的最后一个zxid
         long lastZxid = dataTree.lastProcessedZxid;
         //文件名叫 snapshot，后缀由 Long.toHexString(zxid)组成
-        //snapshot.11d
+        //snapshot.11
         //生成快照文件
         File snapshotFile = new File(snapDir, Util.makeSnapshotName(lastZxid));
         LOG.info("Snapshotting: 0x{} to {}", Long.toHexString(lastZxid),

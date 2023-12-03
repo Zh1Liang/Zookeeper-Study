@@ -337,7 +337,7 @@ public class NIOServerCnxn extends ServerCnxn {
                             + Long.toHexString(sessionId)
                             + ", likely client has closed socket");
                 }
-                if (incomingBuffer.remaining() == 0) { //保证读取了完整的4个字节
+                if (incomingBuffer.remaining() == 0) { //保证读取了完整的4个字节 或者读完了一个请求
                     boolean isPayload;
                     //这里incomingBuffer里存的是4个字节的数据包长度
                     //如果不等于，说明还在读上一个请求

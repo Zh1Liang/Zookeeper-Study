@@ -244,7 +244,8 @@ public class FileTxnLog implements TxnLog, Closeable {
         }
         //不能每次写，需要磁盘Seek，找磁盘块
         //为了避免这种开销， ZooKeeper 在创建事务日志文件且写入文件 header 后，
-        // 就立即向操作系统预分配了一块比较大的磁盘块，保证了单一事务日志文件所占用的磁盘块是连续的，无需重新磁盘 Seek。通过这种方式来提升事务请求的写入性能
+        // 就立即向操作系统预分配了一块比较大的磁盘块，保证了单一事务日志文件所占用的磁盘块是连续的，
+        // 无需重新磁盘 Seek。通过这种方式来提升事务请求的写入性能
         //固定文件大小，提前填充内容进去，防止文件大小每次变化都会带来一次磁盘 Seek，提升性能。
         //文件大小 ZooKeeper 设置默认是 64MB，提前写进去的数据空字符（\0）来填充
         filePadding.padFile(fos.getChannel());
@@ -357,6 +358,7 @@ public class FileTxnLog implements TxnLog, Closeable {
             if (forceSync) {
                 long startSyncNS = System.nanoTime();
 
+                //强制从pageCache中刷到磁盘
                 FileChannel channel = log.getChannel();
                 channel.force(false);
 

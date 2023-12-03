@@ -38,10 +38,12 @@ public class SendAckRequestProcessor implements RequestProcessor, Flushable {
     }
 
     public void processRequest(Request si) {
+        //回复Ack
         if(si.type != OpCode.sync){
             QuorumPacket qp = new QuorumPacket(Leader.ACK, si.getHdr().getZxid(), null,
                 null);
             try {
+                //直接写回Leader
                 learner.writePacket(qp, false);
             } catch (IOException e) {
                 LOG.warn("Closing connection to leader, exception during packet send", e);

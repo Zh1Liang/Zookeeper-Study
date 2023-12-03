@@ -112,6 +112,7 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                     si = queuedRequests.take();
                 } else {
                     si = queuedRequests.poll();
+                    //将队列中积压的提案写入propersal了，则flush一次
                     if (si == null) {
                         flush(toFlush);
                         continue;
@@ -122,7 +123,8 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                 }
                 if (si != null) {
                     // track the number of records written to the log
-                    // 将数据追加到事务日志,写事务日志成功才进入到if
+                    // 将数据追加到事务日志(预写日志),写事务日志成功才进入到if
+                    // 这里只写到了osCache
                     if (zks.getZKDatabase().append(si)) {
                         logCount++;
                         //判断是否需要写快照
@@ -131,7 +133,8 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                             randRoll = r.nextInt(snapCount/2);
                             // roll the log
                             // 将现有的事务日志强制刷盘，且重置生成新事务日志文件的条件
-                            //rollLog() 并不是生成事务日志文件，而是重置条件，也就是说下次再来请求的时候会发现满足生成新事务日志文件的条件，然后才会生成新文件
+                            //rollLog() 并不是生成事务日志文件，而是重置条件，
+                            // 也就是说下次再来请求的时候会发现满足生成新事务日志文件的条件，然后才会生成新文件
                             zks.getZKDatabase().rollLog();
                             // take a snapshot 如果当前正在有生成的则跳过
                             if (snapInProcess != null && snapInProcess.isAlive()) {
@@ -167,6 +170,8 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                     toFlush.add(si);
                     if (toFlush.size() > 1000) {
                         //这里满了1000条才回去刷盘
+                        //这里flush是同步的，后续propersal的请求需要排队
+                        //注意，这里刷的是log
                         // 调用flush方法进行刷盘，也就是将数据真正写到磁盘中，因为前面追加到事务日志可能在操作系统的os cache中，这里强刷到磁盘
                         flush(toFlush);
                     }
@@ -190,8 +195,10 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
         zks.getZKDatabase().commit();
         while (!toFlush.isEmpty()) {
             Request i = toFlush.remove();
+            //flush到磁盘才返回ACK，确保一定成功
             if (nextProcessor != null) {
                 // 调用ack链条，返回ACK
+                // SendAckRequestProcessor
                 nextProcessor.processRequest(i);
             }
         }

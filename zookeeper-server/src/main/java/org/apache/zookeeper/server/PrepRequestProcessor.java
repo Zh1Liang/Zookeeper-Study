@@ -664,7 +664,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
 
         checkACL(zks, parentRecord.acl, ZooDefs.Perms.CREATE, request.authInfo);
         int parentCVersion = parentRecord.stat.getCversion();
-        if (createMode.isSequential()) { //是否是顺序节点
+        if (createMode.isSequential()) { //是否是顺序节点，是则增加序号
             path = path + String.format(Locale.ENGLISH, "%010d", parentCVersion);
         }
         validatePath(path, request.sessionId);
@@ -697,7 +697,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         parentRecord.childCount++;
         parentRecord.stat.setCversion(newCversion);
 
-        //重要的处理
+        //异步放到ZKServer中的一个队列中
         addChangeRecord(parentRecord);
         addChangeRecord(new ChangeRecord(request.getHdr().getZxid(), path, s, 0, listACL));
     }

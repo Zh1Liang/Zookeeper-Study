@@ -66,18 +66,18 @@ public class PurgeTxnLog {
      * during this process, these newest N snapshots or any data logs will be
      * excluded from current purging cycle.
      *
-     * @param dataDir the dir that has the logs
+     * @param logDir the dir that has the logs
      * @param snapDir the dir that has the snapshots
      * @param num the number of snapshots to keep
      * @throws IOException
      */
-    public static void purge(File dataDir, File snapDir, int num) throws IOException {
-        //首先快照日志数量最小是 3，如果比 3 小，那就异常了，也就是最少保留 3 个文件
+    public static void purge(File logDir, File snapDir, int num) throws IOException {
+        //首先快照文件数量最小是 3，如果比 3 小，那就异常了，也就是最少保留 3 个文件
         if (num < 3) {
             throw new IllegalArgumentException(COUNT_ERR_MSG);
         }
 
-        FileTxnSnapLog txnLog = new FileTxnSnapLog(dataDir, snapDir);
+        FileTxnSnapLog txnLog = new FileTxnSnapLog(logDir, snapDir);
         //磁盘上所有快照文件排序，然后放到 list 里
         List<File> snaps = txnLog.findNRecentSnapshots(num);
         int numSnaps = snaps.size();

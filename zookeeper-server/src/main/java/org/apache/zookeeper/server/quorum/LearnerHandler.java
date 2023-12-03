@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
  * learner. All communication with a learner is handled by this
  * class.
  */
+//每个Follower，Leader都会实例化一个LearnerHandler
 public class LearnerHandler extends ZooKeeperThread {
     private static final Logger LOG = LoggerFactory.getLogger(LearnerHandler.class);
 
@@ -450,7 +451,6 @@ public class LearnerHandler extends ZooKeeperThread {
            
             // Take any necessary action if we need to send TRUNC or DIFF
             // startForwarding() will be called in all cases
-            //leader给从同步
             boolean needSnap = syncFollower(peerLastZxid, leader.zk.getZKDatabase(), leader);
             
             /* if we are not truncating or sending a diff just send a snapshot */
@@ -559,7 +559,7 @@ public class LearnerHandler extends ZooKeeperThread {
                 int type;
 
                 switch (qp.getType()) {
-                case Leader.ACK:
+                case Leader.ACK: //处理follower返回的ACK
                     if (this.learnerType == LearnerType.OBSERVER) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Received ACK from Observer  " + this.sid);

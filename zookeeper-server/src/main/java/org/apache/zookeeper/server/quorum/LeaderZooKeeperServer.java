@@ -80,11 +80,10 @@ public class LeaderZooKeeperServer extends QuorumZooKeeperServer {
                 getZooKeeperServerListener());
         commitProcessor.start();
 
-        //第三个处理器 2PAC 的第一个PAC 发起提案
-        //从outstandingQueue中拿出请求
-        // 写入本地的事务日志
-        // follower 写入本地事务日志
-        // 等待过半的follower回复ack
+        //第三个处理器 2PAC 的第一个PAC 发起提案  从outstandingQueue中拿出请求
+        // step1. 写入本地的事务日志
+        // step2. follower 写入本地事务日志
+        // step3. 等待过半的follower回复ack
         ProposalRequestProcessor proposalProcessor = new ProposalRequestProcessor(this,
                 commitProcessor);
         proposalProcessor.initialize();
@@ -95,7 +94,8 @@ public class LeaderZooKeeperServer extends QuorumZooKeeperServer {
         prepRequestProcessor = new PrepRequestProcessor(this, proposalProcessor);
         prepRequestProcessor.start();
 
-        // 第一个处理器  firstProcessor在这里赋值的 这里是责任链的第一个处理器 负责session校验
+        // 第一个处理器  firstProcessor在这里赋值的
+        // 这里是责任链的第一个处理器 负责session校验
         firstProcessor = new LeaderRequestProcessor(this, prepRequestProcessor);
 
         setupContainerManager();

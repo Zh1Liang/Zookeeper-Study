@@ -344,7 +344,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     public void takeSnapshot(boolean syncSnap){
         try {
-            //                 序列化到磁盘的内存数据
+            //内存的DataTree写到磁盘
             txnLogFactory.save(zkDb.getDataTree(), zkDb.getSessionWithTimeOuts(), syncSnap);
         } catch (IOException e) {
             LOG.error("Severe unrecoverable error, exiting", e);

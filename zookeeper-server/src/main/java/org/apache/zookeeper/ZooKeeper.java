@@ -159,6 +159,7 @@ public class ZooKeeper implements AutoCloseable {
     @Deprecated
     public static final String SECURE_CLIENT = "zookeeper.client.secure";
 
+    //代表和服务端的一个连接
     protected final ClientCnxn cnxn;
     private static final Logger LOG;
     static {

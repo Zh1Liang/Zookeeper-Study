@@ -83,6 +83,7 @@ public class DataTree {
      * This hashtable provides a fast lookup to the datanodes. The tree is the
      * source of truth and is where all the locking occurs
      */
+    //所有的数据都在这里，String就是Path,DataNode里的孩子就是一个Set<String>
     private final ConcurrentHashMap<String, DataNode> nodes =
         new ConcurrentHashMap<String, DataNode>();
 
@@ -598,9 +599,12 @@ public class DataTree {
             ZooTrace.logTraceMessage(LOG, ZooTrace.EVENT_DELIVERY_TRACE_MASK,
                     "childWatches.triggerWatch " + parentName);
         }
+        //触发当前节点的watcher
         Set<Watcher> processed = dataWatches.triggerWatch(path,
                 EventType.NodeDeleted);
         childWatches.triggerWatch(path, EventType.NodeDeleted, processed);
+
+        //触发父节点的事件
         childWatches.triggerWatch("".equals(parentName) ? "/" : parentName,
                 EventType.NodeChildrenChanged);
     }
@@ -614,7 +618,7 @@ public class DataTree {
             throw new KeeperException.NoNodeException();
         }
         byte lastdata[] = null;
-        //更新数据,2PC在哪里触发
+        //更新数据
         synchronized (n) {
             lastdata = n.data;
             n.data = data;

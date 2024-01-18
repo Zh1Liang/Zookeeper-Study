@@ -39,7 +39,7 @@ public class FollowerRequestProcessor extends ZooKeeperCriticalThread implements
         RequestProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(FollowerRequestProcessor.class);
 
-    FollowerZooKeeperServer zks;
+    FollowerZooKeeperServer followerZooKeeperServer;
 
     RequestProcessor nextProcessor;
 
@@ -47,11 +47,11 @@ public class FollowerRequestProcessor extends ZooKeeperCriticalThread implements
 
     boolean finished = false;
 
-    public FollowerRequestProcessor(FollowerZooKeeperServer zks,
+    public FollowerRequestProcessor(FollowerZooKeeperServer followerZooKeeperServer,
             RequestProcessor nextProcessor) {
-        super("FollowerRequestProcessor:" + zks.getServerId(), zks
+        super("FollowerRequestProcessor:" + followerZooKeeperServer.getServerId(), followerZooKeeperServer
                 .getZooKeeperServerListener());
-        this.zks = zks;
+        this.followerZooKeeperServer = followerZooKeeperServer;
         this.nextProcessor = nextProcessor;
     }
 
@@ -72,15 +72,16 @@ public class FollowerRequestProcessor extends ZooKeeperCriticalThread implements
                 // the response
                 nextProcessor.processRequest(request);
 
-                // We now ship the request to the leader. As with all  会将请求交给Leader处理，pendingSyncs需要看下
+                // We now ship the request to the leader. As with all
                 // other quorum operations, sync also follows this code
                 // path, but different from others, we need to keep track
                 // of the sync operations this follower has pending, so we
                 // add it to pendingSyncs.
+                //会将请求交给Leader处理，pendingSyncs需要看下
                 switch (request.type) {
                 case OpCode.sync:
-                    zks.pendingSyncs.add(request);
-                    zks.getFollower().request(request);
+                    followerZooKeeperServer.pendingSyncs.add(request);
+                    followerZooKeeperServer.getFollower().request(request);
                     break;
                 case OpCode.create:
                 case OpCode.create2:
@@ -93,13 +94,14 @@ public class FollowerRequestProcessor extends ZooKeeperCriticalThread implements
                 case OpCode.setACL:
                 case OpCode.multi:
                 case OpCode.check:
-                    zks.getFollower().request(request);
+                    //转发请求到主
+                    followerZooKeeperServer.getFollower().request(request);
                     break;
                 case OpCode.createSession:
                 case OpCode.closeSession:
                     // Don't forward local sessions to the leader.
                     if (!request.isLocalSession()) {
-                        zks.getFollower().request(request);
+                        followerZooKeeperServer.getFollower().request(request);
                     }
                     break;
                 }
@@ -117,7 +119,7 @@ public class FollowerRequestProcessor extends ZooKeeperCriticalThread implements
             // an upgrade.
             Request upgradeRequest = null;
             try {
-                upgradeRequest = zks.checkUpgradeSession(request);
+                upgradeRequest = followerZooKeeperServer.checkUpgradeSession(request);
             } catch (KeeperException ke) {
                 if (request.getHdr() != null) {
                     request.getHdr().setType(OpCode.error);
